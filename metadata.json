@@ -1,0 +1,8 @@
+{
+  "name": "Arvand Financial Academy PHP MVC",
+  "description": "A dynamic PHP MVC website for Arvand Financial Academy with automated setup, blog, comments, admin panel, dark mode, and responsive layout.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
