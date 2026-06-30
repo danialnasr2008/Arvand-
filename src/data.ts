@@ -1,9 +1,11 @@
 import { Category, Post, Comment } from './types';
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 1, name: 'اخبار', slug: 'news' },
-  { id: 2, name: 'قوانین و تکالیف مالیاتی', slug: 'tax-regulations' },
-  { id: 3, name: 'مدیریت و مهندسی مالی', slug: 'financial-management' }
+  { id: 1, name: 'اخبار آکادمی', slug: 'news-academy', type: 'news' },
+  { id: 2, name: 'قوانین و تکالیف مالیاتی', slug: 'tax-regulations', type: 'article' },
+  { id: 3, name: 'مدیریت و مهندسی مالی', slug: 'financial-management', type: 'article' },
+  { id: 4, name: 'فراخوان‌های رسمی', slug: 'official-calls', type: 'news' },
+  { id: 5, name: 'بخشنامه‌های مالیاتی', slug: 'tax-circulars', type: 'news' }
 ];
 
 export const ACADEMY_INFO = {
@@ -285,7 +287,7 @@ export const INITIAL_POSTS: Post[] = [
 ### اطلاعات ثبت‌نام:
 - **زمان برگزاری:** پنج‌شنبه ۱۲ تیرماه ۱۴۰۵ - ساعت ۹ الی ۱۳
 - **مکان:** مرکز همایش‌های بین‌المللی صدا و سیما`,
-    categoryId: 2,
+    categoryId: 4,
     imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=1200',
     createdAt: '۱۴۰۵/۰۳/۲۲',
     views: 260,

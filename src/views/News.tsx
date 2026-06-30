@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Post, Category } from '../types';
-import { Search, Calendar, Eye, ArrowLeft, Folder, ChevronLeft, ChevronRight, Bell } from 'lucide-react';
+import { Search, Calendar, Eye, ArrowLeft, Folder, ChevronLeft, ChevronRight, Bell, Hash } from 'lucide-react';
 
 interface NewsProps {
   posts: Post[];
@@ -10,26 +10,28 @@ interface NewsProps {
 }
 
 export default function News({ posts, categories, setSelectedPostSlug, setCurrentView }: NewsProps) {
+  const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 4; // Paginate with 4 news per page
 
   // Filter posts to only show 'news' type
   const newsPosts = posts.filter(p => p.type === 'news');
-  const newsCategories = categories.filter(c => c.id === 1); // Category 1 is announcements and news
+  const newsCategories = categories.filter(c => c.type === 'news');
 
   const filteredNews = newsPosts.filter((p) => {
+    const matchesCategory = selectedCatId === null || p.categoryId === selectedCatId;
     const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    return matchesCategory && matchesSearch;
   });
 
-  // Reset page to 1 when search changes
+  // Reset page to 1 when search or category selection changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [selectedCatId, searchQuery]);
 
   const totalPages = Math.ceil(filteredNews.length / postsPerPage);
   const indexOfLastPost = currentPage * postsPerPage;
@@ -73,7 +75,39 @@ export default function News({ posts, categories, setSelectedPostSlug, setCurren
               </div>
             </div>
 
-
+            {/* Categories Menu */}
+            <div className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-4 text-right" id="news-categories-box">
+              <h4 className="font-bold text-slate-900 dark:text-white text-sm border-r-3 border-blue-500 pr-2">دسته‌بندی موضوعی اخبار</h4>
+              <div className="flex flex-col gap-1.5 text-sm" id="news-categories-list">
+                <button
+                  onClick={() => setSelectedCatId(null)}
+                  className={`w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors cursor-pointer focus:outline-none ${
+                    selectedCatId === null
+                      ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  }`}
+                  id="news-cat-btn-all"
+                >
+                  <span>همه موضوعات</span>
+                  <Folder className="h-4 w-4 shrink-0 opacity-40" />
+                </button>
+                {newsCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCatId(cat.id)}
+                    className={`w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors cursor-pointer focus:outline-none ${
+                      selectedCatId === cat.id
+                        ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                    }`}
+                    id={`news-cat-btn-${cat.id}`}
+                  >
+                    <span>{cat.name}</span>
+                    <Hash className="h-3.5 w-3.5 shrink-0 opacity-30" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* News List */}
@@ -82,6 +116,7 @@ export default function News({ posts, categories, setSelectedPostSlug, setCurren
               <div className="space-y-10" id="news-items-inner-wrapper">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6" id="news-items-grid">
                   {currentNews.map((p) => {
+                    const categoryName = categories.find((c) => c.id === p.categoryId)?.name || 'اخبار آکادمی';
                     return (
                       <article
                         key={p.id}
@@ -101,7 +136,7 @@ export default function News({ posts, categories, setSelectedPostSlug, setCurren
                             id={`news-post-img-${p.id}`}
                           />
                           <span className="absolute top-3 right-3 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded shadow" id={`news-post-badge-${p.id}`}>
-                            خبر رسمی
+                            {categoryName}
                           </span>
                         </div>
                         
@@ -158,7 +193,7 @@ export default function News({ posts, categories, setSelectedPostSlug, setCurren
               </div>
             ) : (
               <div className="text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl" id="news-empty-state">
-                <span className="block text-slate-400 text-sm">هیچ خبر جدیدی یافت نشد.</span>
+                <span className="block text-slate-400 text-sm">هیچ خبر جدیدی در این دسته‌بندی یافت نشد.</span>
               </div>
             )}
           </div>

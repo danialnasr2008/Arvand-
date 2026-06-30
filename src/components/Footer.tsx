@@ -45,7 +45,13 @@ export default function Footer({ setCurrentView, isInstalled, academyInfo }: Foo
                   { id: 'news', label: 'اخبار' },
                 ]).map((item: any) => (
                   <li key={item.id}>
-                    <button onClick={() => setCurrentView(item.id)} className="hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
+                    <button onClick={() => {
+                      if (item.id.startsWith('http://') || item.id.startsWith('https://')) {
+                        window.open(item.id, '_blank');
+                      } else {
+                        setCurrentView(item.id);
+                      }
+                    }} className="hover:text-blue-400 transition-colors focus:outline-none cursor-pointer">
                       {item.label}
                     </button>
                   </li>

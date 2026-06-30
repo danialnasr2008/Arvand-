@@ -36,7 +36,11 @@ export default function Navbar({
   ];
 
   const handleNav = (viewId: string) => {
-    setCurrentView(viewId);
+    if (viewId.startsWith('http://') || viewId.startsWith('https://')) {
+      window.open(viewId, '_blank');
+    } else {
+      setCurrentView(viewId);
+    }
     setMobileOpen(false);
   };
 

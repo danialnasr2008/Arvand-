@@ -75,7 +75,8 @@ export default function AdminPanel({
   onEditCategory,
   onDeleteCategory,
 }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'posts' | 'news' | 'comments' | 'requests' | 'system' | 'content'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'posts' | 'news' | 'comments' | 'requests' | 'categories' | 'system' | 'content'>('dashboard');
+  const [selectedCatType, setSelectedCatType] = useState<'article' | 'news'>('article');
   
   // New Admin form states
   const [newAdminUser, setNewAdminUser] = useState('');
@@ -386,8 +387,11 @@ export default function AdminPanel({
     setFormTitle('');
     setFormSlug('');
     setFormSummary('');
-    // Use first non-news category for articles
-    setFormCategory(categories.find(c => c.id !== 1)?.id || 2);
+    // Use first appropriate category based on post type
+    const defaultCat = type === 'news'
+      ? (categories.find(c => c.type === 'news')?.id || 4)
+      : (categories.find(c => c.type === 'article' || !c.type)?.id || 2);
+    setFormCategory(defaultCat);
     setFormImageUrl(type === 'news' 
       ? 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=1200'
       : 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=1200'
@@ -418,7 +422,7 @@ export default function AdminPanel({
     }
 
     const slugToUse = formSlug || formTitle.toLowerCase().replace(/\s+/g, '-');
-    const categoryIdToUse = formPostType === 'news' ? 1 : formCategory;
+    const categoryIdToUse = formCategory;
 
     if (editingPostId !== null) {
       onEditPost(editingPostId, {
@@ -534,6 +538,19 @@ export default function AdminPanel({
                   {pendingRequests.length}
                 </span>
               )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`w-full text-right px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-3 transition-colors cursor-pointer focus:outline-none ${
+                activeTab === 'categories'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+              id="admin-tab-categories"
+            >
+              <PlusCircle className="h-4 w-4 shrink-0" />
+              <span className="flex-1">مدیریت دسته‌بندی‌ها</span>
             </button>
 
             <button
@@ -1593,16 +1610,7 @@ export default function AdminPanel({
                 >
                   سوالات متداول (FAQs) ({faqsState.length})
                 </button>
-                <button
-                  onClick={() => setContentSubTab('categories')}
-                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-xl border-t border-x transition-colors cursor-pointer focus:outline-none ${
-                    contentSubTab === 'categories'
-                      ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-blue-600 dark:text-blue-400 font-bold'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                  }`}
-                >
-                  دسته‌بندی موضوعی ({categories.length})
-                </button>
+
                 <button
                   onClick={() => setContentSubTab('links')}
                   className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-xl border-t border-x transition-colors cursor-pointer focus:outline-none ${
@@ -2061,198 +2069,426 @@ export default function AdminPanel({
                             placeholder="پاسخ سوال را بنویسید..."
                           />
                         </div>
+                      </div>
 
-                        <div className="flex justify-end gap-2 pt-2">
+                      <div className="flex justify-end gap-2 pt-2">
                           <button
+                            type="button"
                             onClick={() => setEditingFaqIdx(null)}
                             className="px-4 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
                           >
                             انصراف
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
                               if (!newFaqQ || !newFaqA) {
-                                alert('لطفاً هم صورت سوال و هم پاسخ را تکمیل کنید.');
+                                alert('لطفاً هم صورت سوال و هم پاسخ را وارد کنید.');
                                 return;
                               }
-
-                              let updatedFaqs = [...faqsState];
+                              let updated: any[];
                               if (editingFaqIdx === -1) {
-                                updatedFaqs.push({ q: newFaqQ, a: newFaqA });
+                                updated = [...faqsState, { q: newFaqQ, a: newFaqA }];
                               } else {
-                                updatedFaqs[editingFaqIdx] = { q: newFaqQ, a: newFaqA };
+                                updated = [...faqsState];
+                                updated[editingFaqIdx!] = { q: newFaqQ, a: newFaqA };
                               }
-
-                              setFaqsState(updatedFaqs);
-                              const updatedAcademyInfo = {
+                              setFaqsState(updated);
+                              onUpdateAcademyInfo({
                                 ...academyInfo,
-                                faqs: updatedFaqs,
-                              };
-                              onUpdateAcademyInfo(updatedAcademyInfo);
+                                faqs: updated
+                              });
                               setEditingFaqIdx(null);
-                              alert('سوالات متداول با موفقیت ذخیره شدند!');
+                              alert('سوال متداول با موفقیت ذخیره شد!');
                             }}
-                            className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold cursor-pointer"
                           >
                             ذخیره سوال
                           </button>
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* FAQ List */}
-                  <div className="space-y-3" id="admin-faqs-list">
-                    {faqsState.map((faq, idx) => (
-                      <div
-                        key={idx}
-                        className="p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-150 dark:border-slate-800/80 rounded-xl flex items-start justify-between gap-4"
-                        id={`admin-faq-row-${idx}`}
-                      >
-                        <div className="space-y-1.5 text-right">
-                          <span className="block font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
-                            {idx + 1}. {faq.q}
-                          </span>
-                          <span className="block text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-justify">
-                            {faq.a}
-                          </span>
-                        </div>
-
-                        <div className="flex shrink-0 gap-1.5">
-                          <button
-                            onClick={() => {
-                              setEditingFaqIdx(idx);
-                              setNewFaqQ(faq.q);
-                              setNewFaqA(faq.a);
-                            }}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg cursor-pointer transition-colors"
-                            title="ویرایش"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm('آیا مایل به حذف این سوال متداول هستید؟')) {
-                                const updated = faqsState.filter((_, i) => i !== idx);
-                                setFaqsState(updated);
-                                const updatedAcademyInfo = {
-                                  ...academyInfo,
-                                  faqs: updated,
-                                };
-                                onUpdateAcademyInfo(updatedAcademyInfo);
-                              }
-                            }}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg cursor-pointer transition-colors"
-                            title="حذف"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-
-                    {faqsState.length === 0 && (
-                      <div className="text-center text-slate-400 py-6">هیچ سوال متداولی ثبت نشده است.</div>
                     )}
-                  </div>
-                </div>
-              )}
 
-              {/* SUB TAB 4: CATEGORIES MANAGEMENT */}
-              {contentSubTab === 'categories' && (
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm" id="subtab-categories-content">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base">مدیریت دسته‌بندی موضوعی مقالات و اخبار</h3>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingCatId(-1); // -1 means add new
-                        setNewCatName('');
-                        setNewCatSlug('');
-                      }}
-                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow flex items-center gap-1 cursor-pointer focus:outline-none"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>افزودن دسته‌بندی جدید</span>
-                    </button>
-                  </div>
-
-                  {/* Add/Edit Category Form */}
-                  {editingCatId !== null && (
-                    <div className="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4" id="category-edit-form">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <span className="font-bold text-sm text-slate-800 dark:text-white">
-                          {editingCatId === -1 ? 'ایجاد دسته‌بندی موضوعی جدید' : 'ویرایش مشخصات دسته‌بندی'}
-                        </span>
-                        <button type="button" onClick={() => setEditingCatId(null)} className="text-slate-400 hover:text-slate-600">
-                          <X className="h-4 w-4" />
-                        </button>
+                    {/* FAQ List Display */}
+                    <div className="space-y-4 pt-4">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">لیست سوالات متداول موجود</h4>
+                      <div className="space-y-3">
+                        {faqsState.map((faq, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-150 dark:border-slate-800/60 flex items-start justify-between gap-4">
+                            <div className="space-y-1 flex-1">
+                              <p className="font-semibold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">س: {faq.q}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">ج: {faq.a}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewFaqQ(faq.q);
+                                  setNewFaqA(faq.a);
+                                  setEditingFaqIdx(idx);
+                                }}
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
+                                title="ویرایش"
+                              >
+                                <Edit3 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm('آیا از حذف این سوال متداول مطمئن هستید؟')) {
+                                    const updated = faqsState.filter((_, i) => i !== idx);
+                                    setFaqsState(updated);
+                                    onUpdateAcademyInfo({
+                                      ...academyInfo,
+                                      faqs: updated
+                                    });
+                                    alert('سوال متداول با موفقیت حذف شد.');
+                                  }
+                                }}
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                                title="حذف"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {faqsState.length === 0 && (
+                          <div className="text-center py-6 text-slate-400 text-xs">هیچ سوال متداولی تعریف نشده است. برای افزودن از دکمه بالا استفاده کنید.</div>
+                        )}
                       </div>
+                    </div>
+                  </div>
+                )}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs text-slate-500 mb-1">عنوان فارسی دسته‌بندی</label>
-                          <input
-                            type="text"
-                            value={newCatName}
-                            onChange={(e) => {
-                              setNewCatName(e.target.value);
-                              if (editingCatId === -1) {
-                                setNewCatSlug(e.target.value.toLowerCase().trim().replace(/\s+/g, '-'));
-                              }
-                            }}
-                            className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
-                            placeholder="مثال: قوانین بیمه تأمین اجتماعی"
-                          />
-                        </div>
+              {/* SUB TAB 5: MENU AND FOOTER LINKS */}
+              {contentSubTab === 'links' && (
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-8 shadow-sm" id="subtab-links-content">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-base">مدیریت پیشرفته منو و فوتر سایت</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                      <span>کنترل کامل لینک‌های منوی بالای سایت (Header) و دسترسی سریع فوتر با امکان افزودن، ویرایش، حذف و سفارشی‌سازی مقاصد پیوندها</span>
+                    </p>
+                  </div>
 
-                        <div>
-                          <label className="block text-xs text-slate-500 mb-1">نام انگلیسی برای آدرس (Slug)</label>
-                          <input
-                            type="text"
-                            value={newCatSlug}
-                            onChange={(e) => setNewCatSlug(e.target.value)}
-                            className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-left font-mono"
-                            dir="ltr"
-                            placeholder="insurance-laws"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setEditingCatId(null)}
-                          className="px-4 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
-                        >
-                          انصراف
-                        </button>
+                  <div className="space-y-8">
+                    {/* Header Links Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-teal-500 pr-2">لینک‌های منوی بالای سایت (Header Menu)</h4>
                         <button
                           type="button"
                           onClick={() => {
-                            if (!newCatName || !newCatSlug) {
-                              alert('لطفاً هم نام و هم اسلاگ دسته‌بندی را وارد کنید.');
-                              return;
-                            }
-                            if (editingCatId === -1) {
-                              onAddCategory({ name: newCatName, slug: newCatSlug });
-                            } else {
-                              onEditCategory(editingCatId, newCatName, newCatSlug);
-                            }
-                            setEditingCatId(null);
-                            alert('تغییرات با موفقیت ذخیره شد!');
+                            setHeaderLinksState([...headerLinksState, { id: 'new-link', label: 'پیوند جدید' }]);
                           }}
-                          className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                          className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
                         >
-                          ذخیره اطلاعات
+                          <Plus className="h-3 w-3" />
+                          <span>افزودن لینک منو</span>
                         </button>
                       </div>
-                    </div>
-                  )}
 
-                  {/* Categories List */}
-                  <div className="space-y-2.5">
-                    {categories.map((cat) => (
+                      <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-150 dark:border-slate-800/60">
+                        {headerLinksState.map((link, idx) => (
+                          <div key={idx} className="flex flex-col sm:flex-row items-end gap-3 pb-3 border-b border-slate-200/60 dark:border-slate-800/50 last:border-0 last:pb-0">
+                            <div className="flex-1 w-full space-y-1">
+                              <label className="block text-[11px] font-bold text-slate-400">عنوان نمایش فارسی</label>
+                              <input
+                                type="text"
+                                value={link.label}
+                                onChange={(e) => {
+                                  const updated = [...headerLinksState];
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setHeaderLinksState(updated);
+                                }}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 dark:text-slate-100 text-right"
+                                placeholder="مثال: آموزش‌ها"
+                              />
+                            </div>
+
+                            <div className="flex-1 w-full space-y-1">
+                              <label className="block text-[11px] font-bold text-slate-400">شناسه صفحه (مانند home, about, services, blog, news, contact) یا آدرس کامل اینترنتی</label>
+                              <input
+                                type="text"
+                                value={link.id}
+                                onChange={(e) => {
+                                  const updated = [...headerLinksState];
+                                  updated[idx] = { ...updated[idx], id: e.target.value };
+                                  setHeaderLinksState(updated);
+                                }}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 dark:text-slate-100 text-left font-mono"
+                                dir="ltr"
+                                placeholder="home یا https://example.com"
+                              />
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('آیا از حذف این لینک از منو مطمئن هستید؟')) {
+                                  setHeaderLinksState(headerLinksState.filter((_, i) => i !== idx));
+                                }
+                              }}
+                              className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 rounded-xl transition-colors cursor-pointer"
+                              title="حذف لینک"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                        {headerLinksState.length === 0 && (
+                          <div className="text-center py-4 text-slate-400 text-xs">هیچ لینکی در منوی بالا تعریف نشده است.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Access Title */}
+                    <div className="space-y-3">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-blue-500 pr-2">عنوان بخش دسترسی سریع در فوتر</h4>
+                      <div>
+                        <input
+                          type="text"
+                          value={quickAccessTitle}
+                          onChange={(e) => setQuickAccessTitle(e.target.value)}
+                          placeholder="مثال: دسترسی سریع"
+                          className="w-full max-w-md px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick Access Links Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-blue-500 pr-2">پیوندهای بخش دسترسی سریع فوتر (Footer Links)</h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuickAccessLinksState([...quickAccessLinksState, { id: 'new-link', label: 'پیوند جدید' }]);
+                          }}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span>افزودن لینک فوتر</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-150 dark:border-slate-800/60">
+                        {quickAccessLinksState.map((link, idx) => (
+                          <div key={idx} className="flex flex-col sm:flex-row items-end gap-3 pb-3 border-b border-slate-200/60 dark:border-slate-800/50 last:border-0 last:pb-0">
+                            <div className="flex-1 w-full space-y-1">
+                              <label className="block text-[11px] font-bold text-slate-400">عنوان نمایش فارسی</label>
+                              <input
+                                type="text"
+                                value={link.label}
+                                onChange={(e) => {
+                                  const updated = [...quickAccessLinksState];
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setQuickAccessLinksState(updated);
+                                }}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
+                                placeholder="مثال: قوانین مالیات"
+                              />
+                            </div>
+
+                            <div className="flex-1 w-full space-y-1">
+                              <label className="block text-[11px] font-bold text-slate-400">شناسه صفحه (مانند home, about, services, blog, news, contact) یا آدرس کامل اینترنتی</label>
+                              <input
+                                type="text"
+                                value={link.id}
+                                onChange={(e) => {
+                                  const updated = [...quickAccessLinksState];
+                                  updated[idx] = { ...updated[idx], id: e.target.value };
+                                  setQuickAccessLinksState(updated);
+                                }}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-left font-mono"
+                                dir="ltr"
+                                placeholder="home یا https://example.com"
+                              />
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('آیا از حذف این لینک از فوتر مطمئن هستید؟')) {
+                                  setQuickAccessLinksState(quickAccessLinksState.filter((_, i) => i !== idx));
+                                }
+                              }}
+                              className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 rounded-xl transition-colors cursor-pointer"
+                              title="حذف لینک"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                        {quickAccessLinksState.length === 0 && (
+                          <div className="text-center py-4 text-slate-400 text-xs">هیچ لینکی در فوتر تعریف نشده است.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = {
+                            ...academyInfo,
+                            headerLinks: headerLinksState,
+                            quickAccessTitle: quickAccessTitle,
+                            quickAccessLinks: quickAccessLinksState,
+                          };
+                          onUpdateAcademyInfo(updated);
+                          alert('تنظیمات منوها و فوتر با موفقیت ذخیره شد!');
+                        }}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow transition-colors cursor-pointer focus:outline-none text-xs sm:text-sm"
+                      >
+                        ذخیره تنظیمات منوها و فوتر
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: CATEGORIES MANAGEMENT */}
+          {activeTab === 'categories' && (
+            <div className="space-y-6 animate-fade-in text-right" id="admin-panel-categories">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white border-r-4 border-blue-500 pr-2.5">مدیریت دسته‌بندی موضوعی</h2>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mt-1">
+                  دسته‌بندی‌های مجزا برای بخش مقالات آموزشی و اخبار آکادمی را در این بخش مدیریت کنید.
+                </p>
+              </div>
+
+              {/* Category Segment Selector */}
+              <div className="flex border-b border-slate-200 dark:border-slate-800 gap-1" id="categories-segment-selector">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCatType('article');
+                    setEditingCatId(null);
+                  }}
+                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-xl border-t border-x transition-colors cursor-pointer focus:outline-none ${
+                    selectedCatType === 'article'
+                      ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-blue-600 dark:text-blue-400 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  دسته‌بندی‌های مقالات آموزشی
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCatType('news');
+                    setEditingCatId(null);
+                  }}
+                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-t-xl border-t border-x transition-colors cursor-pointer focus:outline-none ${
+                    selectedCatType === 'news'
+                      ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-blue-600 dark:text-blue-400 font-bold'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  دسته‌بندی‌های اخبار و اطلاعیه‌ها
+                </button>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm" id="categories-main-content">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                    {selectedCatType === 'article' ? 'فهرست موضوعات مقالات' : 'فهرست موضوعات اخبار'}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingCatId(-1); // -1 means add new
+                      setNewCatName('');
+                      setNewCatSlug('');
+                    }}
+                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow flex items-center gap-1 cursor-pointer focus:outline-none"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>افزودن دسته‌بندی جدید</span>
+                  </button>
+                </div>
+
+                {/* Add/Edit Category Form */}
+                {editingCatId !== null && (
+                  <div className="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4" id="category-edit-form">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <span className="font-bold text-sm text-slate-800 dark:text-white">
+                        {editingCatId === -1 ? 'ایجاد دسته‌بندی جدید' : 'ویرایش مشخصات دسته‌بندی'}
+                      </span>
+                      <button type="button" onClick={() => setEditingCatId(null)} className="text-slate-400 hover:text-slate-600">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-slate-500 mb-1">عنوان فارسی دسته‌بندی</label>
+                        <input
+                          type="text"
+                          value={newCatName}
+                          onChange={(e) => {
+                            setNewCatName(e.target.value);
+                            if (editingCatId === -1) {
+                              setNewCatSlug(e.target.value.toLowerCase().trim().replace(/\s+/g, '-'));
+                            }
+                          }}
+                          className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
+                          placeholder="مثال: آموزش قوانین سامانه مودیان"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-slate-500 mb-1">نام انگلیسی برای آدرس (Slug)</label>
+                        <input
+                          type="text"
+                          value={newCatSlug}
+                          onChange={(e) => setNewCatSlug(e.target.value)}
+                          className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-left font-mono"
+                          dir="ltr"
+                          placeholder="taxpayers-system"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCatId(null)}
+                        className="px-4 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold cursor-pointer"
+                      >
+                        انصراف
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newCatName || !newCatSlug) {
+                            alert('لطفاً هم نام و هم اسلاگ دسته‌بندی را وارد کنید.');
+                            return;
+                          }
+                          if (editingCatId === -1) {
+                            onAddCategory({ name: newCatName, slug: newCatSlug, type: selectedCatType });
+                          } else {
+                            onEditCategory(editingCatId, newCatName, newCatSlug);
+                          }
+                          setEditingCatId(null);
+                          alert('تغییرات با موفقیت ذخیره شد!');
+                        }}
+                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                      >
+                        ذخیره اطلاعات
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Categories List */}
+                <div className="space-y-2.5">
+                  {categories
+                    .filter((c) => selectedCatType === 'news' ? c.type === 'news' : (c.type === 'article' || !c.type))
+                    .map((cat) => (
                       <div
                         key={cat.id}
                         className="p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-150 dark:border-slate-800/80 rounded-xl flex items-center justify-between"
@@ -2263,7 +2499,7 @@ export default function AdminPanel({
                             <span className="font-bold text-slate-900 dark:text-white text-sm">
                               {cat.name}
                             </span>
-                            {(cat.id === 1 || cat.id === 2) && (
+                            {cat.id <= 5 && (
                               <span className="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded">سیستمی</span>
                             )}
                           </div>
@@ -2286,11 +2522,11 @@ export default function AdminPanel({
                             <Edit3 className="h-4 w-4" />
                           </button>
                           
-                          {cat.id !== 1 && cat.id !== 2 ? (
+                          {cat.id > 5 ? (
                             <button
                               type="button"
                               onClick={() => {
-                                if (confirm(`آیا مایل به حذف دسته‌بندی موضوعی "${cat.name}" هستید؟ کلیه مقالات متصل به آن، به دسته‌بندی عمومی بازنشانی خواهند شد.`)) {
+                                if (confirm(`آیا مایل به حذف دسته‌بندی موضوعی "${cat.name}" هستید؟`)) {
                                   onDeleteCategory(cat.id);
                                   alert('دسته‌بندی موضوعی با موفقیت حذف شد.');
                                 }
@@ -2305,7 +2541,7 @@ export default function AdminPanel({
                               type="button"
                               disabled
                               className="p-1.5 text-slate-300 dark:text-slate-700 cursor-not-allowed"
-                              title="دسته‌بندی‌های سیستمی غیرقابل حذف هستند"
+                              title="دسته‌بندی‌های پیش‌فرض سیستم غیرقابل حذف هستند"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -2313,98 +2549,11 @@ export default function AdminPanel({
                         </div>
                       </div>
                     ))}
-                  </div>
+                  {categories.filter((c) => selectedCatType === 'news' ? c.type === 'news' : (c.type === 'article' || !c.type)).length === 0 && (
+                    <div className="text-center text-slate-400 py-6">هیچ دسته‌بندی موضوعی برای این بخش یافت نشد.</div>
+                  )}
                 </div>
-              )}
-
-              {/* SUB TAB 5: MENU AND FOOTER LINKS */}
-              {contentSubTab === 'links' && (
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm" id="subtab-links-content">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-base">مدیریت عناوین و پیوندهای منو و فوتر</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">تغییر عناوین لینک‌های هدر سایت و بخش دسترسی سریع در فوتر</p>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Header Links Section */}
-                    <div className="space-y-3">
-                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-teal-500 pr-2">عنوان لینک‌های منوی بالای سایت (Header Links)</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-slate-800/60">
-                        {headerLinksState.map((link, idx) => (
-                          <div key={link.id} className="space-y-1">
-                            <label className="block text-[11px] font-bold text-slate-400">لینک صفحه: {link.id === 'home' ? 'صفحه اصلی' : link.id === 'about' ? 'درباره ما' : link.id === 'services' ? 'خدمات' : link.id === 'contact' ? 'درخواست خدمات' : link.id === 'blog' ? 'وبلاگ' : 'اخبار'}</label>
-                            <input
-                              type="text"
-                              value={link.label}
-                              onChange={(e) => {
-                                const updated = [...headerLinksState];
-                                updated[idx] = { ...updated[idx], label: e.target.value };
-                                setHeaderLinksState(updated);
-                              }}
-                              className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-800 dark:text-slate-100 text-right"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Quick Access Title */}
-                    <div className="space-y-3">
-                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-blue-500 pr-2">عنوان بخش دسترسی سریع در فوتر</h4>
-                      <div>
-                        <input
-                          type="text"
-                          value={quickAccessTitle}
-                          onChange={(e) => setQuickAccessTitle(e.target.value)}
-                          placeholder="مثال: دسترسی سریع"
-                          className="w-full max-w-md px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Quick Access Links Section */}
-                    <div className="space-y-3">
-                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-r-4 border-blue-500 pr-2">پیوندهای بخش دسترسی سریع فوتر (Footer Links)</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-slate-800/60">
-                        {quickAccessLinksState.map((link, idx) => (
-                          <div key={link.id} className="space-y-1">
-                            <label className="block text-[11px] font-bold text-slate-400">پیوند به صفحه: {link.id === 'home' ? 'صفحه اصلی' : link.id === 'about' ? 'درباره ما' : link.id === 'services' ? 'خدمات' : link.id === 'contact' ? 'درخواست خدمات' : link.id === 'blog' ? 'وبلاگ' : 'اخبار'}</label>
-                            <input
-                              type="text"
-                              value={link.label}
-                              onChange={(e) => {
-                                const updated = [...quickAccessLinksState];
-                                updated[idx] = { ...updated[idx], label: e.target.value };
-                                setQuickAccessLinksState(updated);
-                              }}
-                              className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 text-right"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = {
-                            ...academyInfo,
-                            headerLinks: headerLinksState,
-                            quickAccessTitle: quickAccessTitle,
-                            quickAccessLinks: quickAccessLinksState,
-                          };
-                          onUpdateAcademyInfo(updated);
-                          alert('تغییرات عناوین و لینک‌های هدر و فوتر با موفقیت در پایگاه داده ذخیره شد!');
-                        }}
-                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow transition-colors cursor-pointer focus:outline-none text-xs sm:text-sm"
-                      >
-                        ذخیره تنظیمات منوها و فوتر
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           )}
 
