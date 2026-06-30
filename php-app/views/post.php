@@ -1,137 +1,123 @@
-<?php 
-require_once __DIR__ . '/layout/header.php'; 
+<?php
+$slug = $_GET['slug'] ?? '';
+$stmt = $db->prepare("SELECT * FROM posts WHERE slug = ?");
+$stmt->execute([$slug]);
+$post = $stmt->fetch();
 
-if (!function_exists('parseMarkdown')) {
-    function parseMarkdown($text) {
-        $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-        $text = str_replace(["\r\n", "\r"], "\n", $text);
-        $blocks = explode("\n\n", $text);
-        $output = [];
-        
-        foreach ($blocks as $block) {
-            $block = trim($block);
-            if ($block === '') continue;
-            
-            // Headers
-            if (preg_match('/^### (.*?)$/m', $block)) {
-                $block = preg_replace('/^### (.*?)$/m', '<h3>$1</h3>', $block);
-                $output[] = $block;
-            } elseif (preg_match('/^## (.*?)$/m', $block)) {
-                $block = preg_replace('/^## (.*?)$/m', '<h2>$1</h2>', $block);
-                $output[] = $block;
-            } elseif (preg_match('/^# (.*?)$/m', $block)) {
-                $block = preg_replace('/^# (.*?)$/m', '<h1>$1</h1>', $block);
-                $output[] = $block;
-            }
-            // Blockquotes
-            elseif (preg_match('/^&gt; (.*?)$/m', $block)) {
-                $block = preg_replace('/^&gt; (.*?)$/m', '<blockquote>$1</blockquote>', $block);
-                $output[] = $block;
-            }
-            // Bullet list
-            elseif (preg_match('/^[\*\-] (.*?)$/m', $block)) {
-                $items = preg_split('/\n/', $block);
-                $listHtml = "<ul>\n";
-                foreach ($items as $item) {
-                    $cleanedItem = preg_replace('/^[\*\-] (.*?)$/', '$1', trim($item));
-                    $cleanedItem = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $cleanedItem);
-                    $cleanedItem = preg_replace('/`(.*?)`/', '<code>$1</code>', $cleanedItem);
-                    $listHtml .= "  <li>" . $cleanedItem . "</li>\n";
-                }
-                $listHtml .= "</ul>";
-                $output[] = $listHtml;
-            }
-            // Plain paragraph
-            else {
-                $block = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $block);
-                $block = preg_replace('/`(.*?)`/', '<code>$1</code>', $block);
-                $block = nl2br($block);
-                $output[] = "<p>" . $block . "</p>";
-            }
-        }
-        
-        return implode("\n\n", $output);
-    }
+if(!$post) {
+    echo '<div class="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">مقاله مورد نظر یافت نشد.<a href="/php-app/blog" class="mt-4 block mx-auto text-blue-500 underline">بازگشت به وبلاگ</a></div>';
+    return;
+}
+
+$catName = 'عمومی';
+foreach($categories as $c) if($c['id'] == $post['category_id']) $catName = $c['name'];
+
+// Handle comment submit
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['author_name'])) {
+    $author = $_POST['author_name'];
+    $content = $_POST['content'];
+    $stmt = $db->prepare("INSERT INTO comments (post_id, author_name, content, is_approved) VALUES (?, ?, ?, 0)");
+    $stmt->execute([$post['id'], $author, $content]);
+    $_SESSION['comment_success'] = 'دیدگاه شما با موفقیت ثبت شد و به بخش مدیریت ارسال شد.';
+    redirect("post?slug=".urlencode($slug));
+}
+
+// Increment views
+$db->exec("UPDATE posts SET views = views + 1 WHERE id = ".$post['id']);
+
+$stmt = $db->prepare("SELECT * FROM comments WHERE post_id = ? AND is_approved = 1 ORDER BY id ASC");
+$stmt->execute([$post['id']]);
+$comments = $stmt->fetchAll();
+
+function parseMarkdown($text) {
+    $text = htmlspecialchars($text);
+    $text = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $text);
+    $text = preg_replace('/`(.*?)`/', '<code class="font-mono text-xs bg-slate-100 text-blue-600 px-1.5 py-0.5 rounded">$1</code>', $text);
+    $text = preg_replace('/### (.*?)\n/', '<h4 class="text-lg font-bold text-slate-800 mt-6 mb-3 border-r-4 border-blue-500 pr-2">$1</h4>', $text);
+    $text = preg_replace('/## (.*?)\n/', '<h3 class="text-xl font-extrabold text-slate-900 mt-8 mb-4 border-r-4 border-blue-600 pr-2">$1</h3>', $text);
+    $text = nl2br($text);
+    return $text;
 }
 ?>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8 animate-fade-in" id="post-detail-view" dir="rtl">
+    <a href="/php-app/blog" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 focus:outline-none cursor-pointer">
+        <span>بازگشت به لیست مقالات</span>
+    </a>
 
-<article class="py-16 px-4 max-w-4xl mx-auto">
-    <!-- Post Cover Image -->
-    <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>" class="w-full h-80 object-cover rounded-2xl shadow-md mb-8">
+    <article class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl" id="post-detail-card">
+        <div class="relative h-64 sm:h-96 w-full bg-slate-100" id="post-detail-img-container">
+            <img src="<?= htmlspecialchars($post['image_url'] ?: '') ?>" class="w-full h-full object-cover">
+            <span class="absolute bottom-4 right-4 text-xs font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow"><?= htmlspecialchars($catName) ?></span>
+        </div>
 
-    <!-- Title and Meta -->
-    <h1 class="text-3xl font-black text-slate-900 mb-4 leading-tight"><?php echo htmlspecialchars($post['title']); ?></h1>
-    <div class="flex items-center gap-4 text-xs text-slate-400 border-b border-slate-100 pb-6 mb-8">
-        <span>تعداد بازدید: <?php echo (int)$post['views']; ?> مرتبه</span>
-        <span>دسته‌بندی: عمومی</span>
-    </div>
-
-    <!-- Content -->
-    <div class="prose-custom max-w-none text-slate-700 mb-12">
-        <?php echo parseMarkdown($post['content']); ?>
-    </div>
-
-    <!-- Comments Section -->
-    <section class="border-t border-slate-200 pt-10">
-        <h2 class="text-xl font-bold text-slate-900 mb-6">دیدگاه‌های کاربران (<?php echo count($comments); ?>)</h2>
-
-        <?php if (isset($_SESSION['comment_success'])): ?>
-            <div class="bg-green-50 border-r-4 border-green-500 text-green-700 p-4 rounded-lg mb-6 text-xs">
-                <?php 
-                    echo htmlspecialchars($_SESSION['comment_success']); 
-                    unset($_SESSION['comment_success']);
-                ?>
+        <div class="p-6 sm:p-10 space-y-6 text-right" id="post-detail-body">
+            <div class="flex flex-wrap gap-4 items-center text-xs text-slate-400 font-mono border-b border-slate-100 pb-4">
+                <span>انتشار: <?= htmlspecialchars($post['created_at']) ?></span>
+                <span><?= (int)$post['views'] ?> بازدید</span>
             </div>
-        <?php endif; ?>
 
-        <?php if (isset($_SESSION['comment_error'])): ?>
-            <div class="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-xs">
-                <?php 
-                    echo htmlspecialchars($_SESSION['comment_error']); 
-                    unset($_SESSION['comment_error']);
-                ?>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
+                <?= htmlspecialchars($post['title']) ?>
+            </h1>
+
+            <div class="text-slate-700 text-sm sm:text-base leading-relaxed space-y-4 text-justify font-sans">
+                <?= parseMarkdown($post['content']) ?>
             </div>
-        <?php endif; ?>
+        </div>
+    </article>
 
-        <!-- List Comments -->
-        <div class="space-y-4 mb-10">
-            <?php if (!empty($comments)): ?>
-                <?php foreach ($comments as $comment): ?>
-                    <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-slate-800"><?php echo htmlspecialchars($comment['author_name']); ?></span>
-                            <span class="text-xs text-slate-400">یک دیدگاه</span>
+    <section class="space-y-6" id="post-comments-section">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2 border-r-4 border-blue-500 pr-2.5">
+            <span>دیدگاه‌های کاربران (<?= count($comments) ?>)</span>
+        </h3>
+
+        <div class="space-y-4" id="post-comments-list">
+            <?php foreach($comments as $c): ?>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 text-right space-y-2.5 shadow-sm">
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2 font-bold text-slate-800">
+                            <div class="h-7 w-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs">👤</div>
+                            <span><?= htmlspecialchars($c['author_name']) ?></span>
                         </div>
-                        <p class="text-slate-600 text-xs leading-relaxed"><?php echo nl2br(htmlspecialchars($comment['content'])); ?></p>
+                        <span class="text-slate-400 font-mono"><?= htmlspecialchars($c['created_at']) ?></span>
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="text-xs text-slate-400 text-center py-4">اولین نفری باشید که دیدگاه خود را ارسال می‌کند!</p>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed pr-9">
+                        <?= htmlspecialchars($c['content']) ?>
+                    </p>
+                </div>
+            <?php endforeach; ?>
+
+            <?php if(empty($comments)): ?>
+                <div class="p-8 text-center text-sm text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                    هیچ دیدگاهی برای این مقاله ثبت نشده است. اولین نفری باشید که نظر می‌دهد!
+                </div>
             <?php endif; ?>
         </div>
 
-        <!-- Add Comment Form -->
-        <div class="bg-slate-50 p-6 border border-slate-200 rounded-xl">
-            <h3 class="text-sm font-bold text-slate-900 mb-4">ارسال نظر جدید</h3>
-            <form action="/comment/add" method="POST" class="space-y-4">
-                <input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
-                <input type="hidden" name="post_slug" value="<?php echo htmlspecialchars($post['slug']); ?>">
-                
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">نام یا نام مستعار</label>
-                    <input type="text" name="author_name" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">متن دیدگاه</label>
-                    <textarea name="content" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none" required></textarea>
-                </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4 text-right">
+            <h4 class="font-bold text-slate-900 text-base">ثبت دیدگاه جدید</h4>
+            <p class="text-xs text-slate-400">دیدگاه شما پس از بررسی و تایید توسط مدیریت در سایت نمایش داده خواهد شد. نیازی به ثبت‌نام یا لاگین نیست!</p>
 
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg text-xs transition-colors">
-                    ثبت و ارسال دیدگاه
+            <?php if(isset($_SESSION['comment_success'])): ?>
+                <div class="p-3.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2">
+                    <span><?= htmlspecialchars($_SESSION['comment_success']) ?></span>
+                </div>
+                <?php unset($_SESSION['comment_success']); ?>
+            <?php endif; ?>
+
+            <form action="/php-app/post?slug=<?= urlencode($slug) ?>" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">نام یا نام مستعار *</label>
+                    <input type="text" name="author_name" required placeholder="مثال: حمیدرضا علوی" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">متن دیدگاه شما *</label>
+                    <textarea name="content" required rows="4" placeholder="دیدگاه خود را اینجا بنویسید..." class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right leading-relaxed"></textarea>
+                </div>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow transition-all flex items-center justify-center gap-2">
+                    <span>ارسال دیدگاه</span>
                 </button>
             </form>
         </div>
     </section>
-</article>
-
-<?php require_once __DIR__ . '/layout/footer.php'; ?>
+</div>
