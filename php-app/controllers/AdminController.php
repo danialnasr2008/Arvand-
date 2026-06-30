@@ -87,6 +87,16 @@ class AdminController extends Controller {
                 'image_url' => trim($_POST['image_url'] ?? '')
             ];
 
+            // Handle image file upload
+            if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+                $tmpName = $_FILES['image_file']['tmp_name'];
+                $type = $_FILES['image_file']['type'];
+                if (strpos($type, 'image/') === 0) {
+                    $imgData = file_get_contents($tmpName);
+                    $data['image_url'] = 'data:' . $type . ';base64,' . base64_encode($imgData);
+                }
+            }
+
             // Auto slug generator if empty
             if (empty($data['slug'])) {
                 $data['slug'] = strtolower(str_replace(' ', '-', $data['title']));
@@ -132,6 +142,16 @@ class AdminController extends Controller {
                 'category_id' => (int)($_POST['category_id'] ?? 0),
                 'image_url' => trim($_POST['image_url'] ?? '')
             ];
+
+            // Handle image file upload
+            if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+                $tmpName = $_FILES['image_file']['tmp_name'];
+                $type = $_FILES['image_file']['type'];
+                if (strpos($type, 'image/') === 0) {
+                    $imgData = file_get_contents($tmpName);
+                    $data['image_url'] = 'data:' . $type . ';base64,' . base64_encode($imgData);
+                }
+            }
 
             if (empty($data['title']) || empty($data['content'])) {
                 $error = 'عنوان و محتوای مقاله الزامی هستند.';

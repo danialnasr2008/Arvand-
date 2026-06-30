@@ -43,7 +43,7 @@
             <?php endif; ?>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
-                <form action="/admin/posts/edit/<?php echo (int)$post['id']; ?>" method="POST" class="space-y-6">
+                <form action="/admin/posts/edit/<?php echo (int)$post['id']; ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-2">عنوان مقاله <span class="text-red-500">*</span></label>
@@ -56,9 +56,39 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-2">لینک تصویر شاخص (URL)</label>
-                            <input type="text" name="image_url" value="<?php echo htmlspecialchars($post['image_url']); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-left font-mono focus:outline-none focus:border-blue-500">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-slate-700">تصویر شاخص مقاله</label>
+                                <div class="flex gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                                    <button type="button" id="btn-mode-upload" class="px-2.5 py-0.5 text-[10px] font-bold rounded bg-blue-600 text-white shadow-sm transition-all" onclick="setMode('upload')">آپلود فایل عکس</button>
+                                    <button type="button" id="btn-mode-url" class="px-2.5 py-0.5 text-[10px] font-bold rounded text-slate-500 hover:text-slate-800 transition-all" onclick="setMode('url')">لینک تصویر (URL)</button>
+                                </div>
+                            </div>
+
+                            <!-- Upload Mode -->
+                            <div id="container-upload" class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-4 bg-slate-50 hover:bg-slate-100 transition-colors relative min-h-[120px]">
+                                <div id="upload-preview-container" class="hidden w-full flex flex-col items-center gap-2">
+                                    <img id="upload-preview" src="" alt="Preview" class="h-24 w-auto object-cover rounded-lg border border-slate-200 shadow-sm">
+                                    <button type="button" class="text-[10px] font-bold bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded transition-colors" onclick="clearUpload()">حذف عکس و انتخاب مجدد</button>
+                                </div>
+                                <label id="upload-placeholder" class="cursor-pointer w-full text-center block space-y-1">
+                                    <div class="flex justify-center text-slate-400">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-600 block">برای بارگذاری تصویر کلیک کنید</span>
+                                    <span class="text-[10px] text-slate-400 block"> JPG, PNG, WEBP (حداکثر ۲ مگابایت)</span>
+                                    <input type="file" name="image_file" id="image_file" accept="image/*" class="hidden" onchange="handleFileSelect(this)">
+                                </label>
+                            </div>
+
+                            <!-- URL Mode -->
+                            <div id="container-url" class="hidden">
+                                <input type="text" name="image_url" id="image_url" value="<?php echo htmlspecialchars($post['image_url']); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-left font-mono focus:outline-none focus:border-blue-500" dir="ltr" oninput="updateUrlPreview(this.value)">
+                                <div id="url-preview-container" class="flex items-center gap-2 mt-2">
+                                    <img id="url-preview" src="<?php echo htmlspecialchars($post['image_url']); ?>" class="h-10 w-16 object-cover rounded border border-slate-200 shrink-0">
+                                    <span class="text-[10px] text-slate-400">پیش‌نمایش تصویر متصل شده</span>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-2">دسته‌بندی</label>
@@ -93,5 +123,81 @@
             </div>
         </div>
     </main>
+    <script>
+        let currentMode = 'upload';
+        
+        function setMode(mode) {
+            currentMode = mode;
+            const btnUpload = document.getElementById('btn-mode-upload');
+            const btnUrl = document.getElementById('btn-mode-url');
+            const containerUpload = document.getElementById('container-upload');
+            const containerUrl = document.getElementById('container-url');
+            
+            if (mode === 'upload') {
+                btnUpload.className = "px-2.5 py-0.5 text-[10px] font-bold rounded bg-blue-600 text-white shadow-sm transition-all";
+                btnUrl.className = "px-2.5 py-0.5 text-[10px] font-bold rounded text-slate-500 hover:text-slate-800 transition-all";
+                containerUpload.classList.remove('hidden');
+                containerUrl.classList.add('hidden');
+            } else {
+                btnUrl.className = "px-2.5 py-0.5 text-[10px] font-bold rounded bg-blue-600 text-white shadow-sm transition-all";
+                btnUpload.className = "px-2.5 py-0.5 text-[10px] font-bold rounded text-slate-500 hover:text-slate-800 transition-all";
+                containerUrl.classList.remove('hidden');
+                containerUpload.classList.add('hidden');
+            }
+        }
+        
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('حجم فایل نباید بیشتر از ۲ مگابایت باشد.');
+                    input.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('upload-preview').src = e.target.result;
+                    document.getElementById('upload-preview-container').classList.remove('hidden');
+                    document.getElementById('upload-preview-container').classList.add('flex');
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function clearUpload() {
+            const input = document.getElementById('image_file');
+            input.value = '';
+            document.getElementById('upload-preview').src = '';
+            document.getElementById('upload-preview-container').classList.add('hidden');
+            document.getElementById('upload-preview-container').classList.remove('flex');
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+        }
+        
+        function updateUrlPreview(url) {
+            const preview = document.getElementById('url-preview');
+            const container = document.getElementById('url-preview-container');
+            if (url) {
+                preview.src = url;
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        
+        // Initialize mode on load
+        const initialUrl = "<?php echo htmlspecialchars($post['image_url'] ?? ''); ?>";
+        if (initialUrl && !initialUrl.startsWith('data:') && initialUrl.trim() !== '') {
+            setMode('url');
+        } else {
+            setMode('upload');
+            if (initialUrl && initialUrl.startsWith('data:')) {
+                document.getElementById('upload-preview').src = initialUrl;
+                document.getElementById('upload-preview-container').classList.remove('hidden');
+                document.getElementById('upload-preview-container').classList.add('flex');
+                document.getElementById('upload-placeholder').classList.add('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
