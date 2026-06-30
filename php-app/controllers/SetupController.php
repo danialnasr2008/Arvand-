@@ -26,10 +26,10 @@ class SetupController extends Controller {
                     
                     // Write to config.php
                     $configContent = "<?php\n"
-                                   . "define('DB_HOST', '$dbHost');\n"
-                                   . "define('DB_NAME', '$dbName');\n"
-                                   . "define('DB_USER', '$dbUser');\n"
-                                   . "define('DB_PASS', '$dbPass');\n\n"
+                                   . "define('DB_HOST', " . var_export($dbHost, true) . ");\n"
+                                   . "define('DB_NAME', " . var_export($dbName, true) . ");\n"
+                                   . "define('DB_USER', " . var_export($dbUser, true) . ");\n"
+                                   . "define('DB_PASS', " . var_export($dbPass, true) . ");\n\n"
                                    . "\$scriptName = \$_SERVER['SCRIPT_NAME'] ?? '/index.php';\n"
                                    . "\$baseUrl = str_replace('index.php', '', \$scriptName);\n"
                                    . "define('BASE_URL', \$baseUrl);\n";
