@@ -12,7 +12,7 @@
             </div>
         <?php endif; ?>
 
-        <form class="mt-8 space-y-6" action="/php-app/login" method="POST">
+        <form class="mt-8 space-y-6" action="" method="POST">
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">نام کاربری</label>

@@ -30,7 +30,9 @@ class SetupController extends Controller {
                                    . "define('DB_NAME', '$dbName');\n"
                                    . "define('DB_USER', '$dbUser');\n"
                                    . "define('DB_PASS', '$dbPass');\n\n"
-                                   . "define('BASE_URL', '/php-app/');\n";
+                                   . "\$scriptName = \$_SERVER['SCRIPT_NAME'] ?? '/index.php';\n"
+                                   . "\$baseUrl = str_replace('index.php', '', \$scriptName);\n"
+                                   . "define('BASE_URL', \$baseUrl);\n";
                     file_put_contents(__DIR__ . '/../config/config.php', $configContent);
                     
                     // Init tables

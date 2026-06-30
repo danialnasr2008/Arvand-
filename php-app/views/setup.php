@@ -27,7 +27,7 @@
             <?php unset($_SESSION['error_msg']); ?>
         <?php endif; ?>
         
-        <form action="/php-app/setup" method="POST">
+        <form action="" method="POST">
             <div class="mb-8">
                 <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <span class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm">۱</span>

@@ -4,7 +4,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10" dir="rtl">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800">پنل مدیریت</h1>
-        <a href="/php-app/admin/logout" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold">خروج</a>
+        <a href="<?= BASE_URL ?>admin/logout" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold">خروج</a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -40,7 +40,7 @@
             <div id="tab-posts" class="space-y-6 hidden tab-content">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
                     <h2 class="text-lg font-bold border-b pb-4">افزودن مقاله/خبر جدید</h2>
-                    <form action="/php-app/admin/post_action" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <form action="<?= BASE_URL ?>admin/post_action" method="POST" enctype="multipart/form-data" class="space-y-4">
                         <input type="hidden" name="action" value="create">
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -106,7 +106,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <form action="/php-app/admin/post_action" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟')">
+                                    <form action="<?= BASE_URL ?>admin/post_action" method="POST" onsubmit="return confirm('آیا مطمئن هستید؟')">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?= $post['id'] ?>">
                                         <button type="submit" class="text-red-500 hover:text-red-700 font-bold">حذف</button>
@@ -177,14 +177,14 @@
                                 </td>
                                 <td class="px-6 py-4 space-x-2 space-x-reverse">
                                     <?php if(!$c['is_approved']): ?>
-                                    <form action="/php-app/admin/comment_action" method="POST" class="inline">
+                                    <form action="<?= BASE_URL ?>admin/comment_action" method="POST" class="inline">
                                         <input type="hidden" name="action" value="approve">
                                         <input type="hidden" name="id" value="<?= $c['id'] ?>">
                                         <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-bold ml-3">تایید</button>
                                     </form>
                                     <?php endif; ?>
                                     
-                                    <form action="/php-app/admin/comment_action" method="POST" class="inline" onsubmit="return confirm('آیا از حذف این دیدگاه مطمئن هستید؟')">
+                                    <form action="<?= BASE_URL ?>admin/comment_action" method="POST" class="inline" onsubmit="return confirm('آیا از حذف این دیدگاه مطمئن هستید؟')">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?= $c['id'] ?>">
                                         <button type="submit" class="text-red-500 hover:text-red-700 font-bold">حذف</button>

@@ -32,7 +32,7 @@ if(!$activeService && !empty($SERVICES_LIST)) {
                 <?php foreach($SERVICES_LIST as $srv): ?>
                     <?php $isActive = ($activeTab === $srv['id']); ?>
                     <a
-                        href="/php-app/services?tab=<?= $srv['id'] ?>"
+                        href="<?= BASE_URL ?>services?tab=<?= $srv['id'] ?>"
                         class="w-full text-right px-4 py-3.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-3 transition-all cursor-pointer focus:outline-none <?= $isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/10' : 'bg-white text-slate-700 border border-slate-200/60 hover:bg-slate-50' ?>"
                         id="service-tab-btn-<?= $srv['id'] ?>"
                     >

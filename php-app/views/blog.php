@@ -16,7 +16,7 @@ $articleCategories = array_filter($categories, function($c) { return $c['type'] 
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white p-4 border border-slate-200 rounded-2xl shadow-sm space-y-2">
                     <label class="block text-xs font-bold text-slate-500 uppercase pr-1">جستجو در مقالات</label>
-                    <form action="/php-app/blog" method="GET" class="relative">
+                    <form action="<?= BASE_URL ?>blog" method="GET" class="relative">
                         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="کلمه کلیدی را وارد کنید..." class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right">
                         <?php if($catFilter): ?><input type="hidden" name="cat" value="<?= htmlspecialchars($catFilter) ?>"><?php endif; ?>
                     </form>
@@ -25,11 +25,11 @@ $articleCategories = array_filter($categories, function($c) { return $c['type'] 
                 <div class="bg-white p-5 border border-slate-200 rounded-2xl shadow-sm space-y-4 text-right">
                     <h4 class="font-bold text-slate-900 text-sm border-r-3 border-blue-500 pr-2">دسته‌بندی موضوعی</h4>
                     <div class="flex flex-col gap-1.5 text-sm">
-                        <a href="/php-app/blog" class="w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors <?= !$catFilter ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-50' ?>">
+                        <a href="<?= BASE_URL ?>blog" class="w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors <?= !$catFilter ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-50' ?>">
                             <span>همه دسته‌ها</span>
                         </a>
                         <?php foreach($articleCategories as $cat): ?>
-                            <a href="/php-app/blog?cat=<?= $cat['id'] ?><?= $search ? '&search='.urlencode($search) : '' ?>" class="w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors <?= $catFilter == $cat['id'] ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-50' ?>">
+                            <a href="<?= BASE_URL ?>blog?cat=<?= $cat['id'] ?><?= $search ? '&search='.urlencode($search) : '' ?>" class="w-full text-right px-3 py-2 rounded-lg flex items-center justify-between transition-colors <?= $catFilter == $cat['id'] ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-50' ?>">
                                 <span><?= htmlspecialchars($cat['name']) ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -49,7 +49,7 @@ $articleCategories = array_filter($categories, function($c) { return $c['type'] 
                             $catName = 'عمومی'; 
                             foreach($categories as $c) if($c['id'] == $post['category_id']) $catName = $c['name']; 
                             ?>
-                            <a href="/php-app/post?slug=<?= urlencode($post['slug']) ?>" class="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col justify-between">
+                            <a href="<?= BASE_URL ?>post?slug=<?= urlencode($post['slug']) ?>" class="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col justify-between">
                                 <div class="relative h-44 overflow-hidden bg-slate-100 shrink-0">
                                     <img src="<?= htmlspecialchars($post['image_url'] ?: '') ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                                     <span class="absolute top-3 right-3 text-xs font-semibold bg-blue-600 text-white px-2.5 py-1 rounded shadow"><?= htmlspecialchars($catName) ?></span>

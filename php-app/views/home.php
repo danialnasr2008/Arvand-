@@ -17,13 +17,13 @@
                         <?= htmlspecialchars($ACADEMY_INFO['heroDescription']) ?>
                     </p>
                     <div class="flex flex-wrap gap-4 pt-4" id="hero-cta-group">
-                        <a href="/php-app/request" class="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all flex items-center gap-2" id="hero-cta-primary">
+                        <a href="<?= BASE_URL ?>request" class="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all flex items-center gap-2" id="hero-cta-primary">
                             <span>دریافت خدمات و مشاوره</span>
                         </a>
-                        <a href="/php-app/services" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl transition-all" id="hero-cta-secondary">
+                        <a href="<?= BASE_URL ?>services" class="px-6 py-3.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl transition-all" id="hero-cta-secondary">
                             <span>مشاهده خدمات آکادمی</span>
                         </a>
-                        <a href="/php-app/login" class="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg shadow-emerald-500/15 hover:scale-[1.02] transition-all flex items-center gap-2 border border-emerald-500/10" id="hero-cta-academy-login">
+                        <a href="<?= BASE_URL ?>login" class="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg shadow-emerald-500/15 hover:scale-[1.02] transition-all flex items-center gap-2 border border-emerald-500/10" id="hero-cta-academy-login">
                             <span>ورود به آکادمی اروند</span>
                         </a>
                     </div>
@@ -73,7 +73,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="home-services-grid">
             <?php foreach(array_slice($SERVICES_LIST, 0, 3) as $srv): ?>
-                <a href="/php-app/services?tab=<?= $srv['id'] ?>" class="bg-white border border-slate-200/80 p-6 rounded-3xl hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between group cursor-pointer" id="home-service-card-<?= $srv['id'] ?>">
+                <a href="<?= BASE_URL ?>services?tab=<?= $srv['id'] ?>" class="bg-white border border-slate-200/80 p-6 rounded-3xl hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-300 flex flex-col justify-between group cursor-pointer" id="home-service-card-<?= $srv['id'] ?>">
                     <div class="space-y-4" id="home-service-content-<?= $srv['id'] ?>">
                         <div class="p-3 bg-blue-50 rounded-2xl w-fit text-blue-600 group-hover:scale-110 transition-transform" id="home-service-icon-<?= $srv['id'] ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-blue-600"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
@@ -89,7 +89,7 @@
         </div>
         
         <div class="text-center mt-8" id="home-services-more-cta-wrapper">
-            <a href="/php-app/services" class="inline-flex items-center gap-2 px-6 py-3 border border-slate-200 hover:border-blue-500 text-slate-700 hover:text-blue-600 text-sm font-bold rounded-full transition-all">
+            <a href="<?= BASE_URL ?>services" class="inline-flex items-center gap-2 px-6 py-3 border border-slate-200 hover:border-blue-500 text-slate-700 hover:text-blue-600 text-sm font-bold rounded-full transition-all">
                 <span>مشاهده همه سرفصل خدمات مالی اروند</span>
             </a>
         </div>
@@ -137,14 +137,14 @@
                 <h2 class="text-2xl font-bold text-slate-900">جدیدترین مقالات و اخبار مالیاتی</h2>
                 <p class="text-sm text-slate-500">تحلیل‌های روز، قوانین جدید و آموزش‌های تخصصی بازار مالی ایران</p>
             </div>
-            <a href="/php-app/blog" class="text-sm font-bold text-blue-600 hover:text-blue-500 flex items-center gap-1 shrink-0" id="home-blog-view-all-btn">
+            <a href="<?= BASE_URL ?>blog" class="text-sm font-bold text-blue-600 hover:text-blue-500 flex items-center gap-1 shrink-0" id="home-blog-view-all-btn">
                 <span>ورود به بخش مقالات</span>
             </a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="home-blog-grid">
             <?php foreach($latest_posts as $p): ?>
-                <a href="/php-app/post?slug=<?= urlencode($p['slug']) ?>" class="bg-white border border-slate-200/80 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-500/30 transition-all duration-300 cursor-pointer group" id="home-blog-post-<?= $p['id'] ?>">
+                <a href="<?= BASE_URL ?>post?slug=<?= urlencode($p['slug']) ?>" class="bg-white border border-slate-200/80 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-blue-500/5 hover:border-blue-500/30 transition-all duration-300 cursor-pointer group" id="home-blog-post-<?= $p['id'] ?>">
                     <div class="relative h-52 overflow-hidden bg-slate-100" id="home-blog-post-img-wrapper-<?= $p['id'] ?>">
                         <img src="<?= htmlspecialchars($p['image_url'] ?: '') ?>" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500">
                     </div>
@@ -200,7 +200,7 @@
                     مشخصات کسب‌وکار و نیاز خود را از طریق فرم الکترونیکی برای ما بفرستید. تیم مشاوران ارشد اروند در کوتاه‌ترین زمان، پرونده شما را ارزیابی کرده و تماس خواهند گرفت.
                 </p>
                 <div class="pt-2" id="cta-banner-buttons">
-                    <a href="/php-app/request" class="inline-block px-8 py-3.5 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-xl shadow-lg transition-all text-sm hover:scale-[1.02]" id="cta-banner-btn">
+                    <a href="<?= BASE_URL ?>request" class="inline-block px-8 py-3.5 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-xl shadow-lg transition-all text-sm hover:scale-[1.02]" id="cta-banner-btn">
                         ارسال مشخصات و دریافت خدمات مالی
                     </a>
                 </div>

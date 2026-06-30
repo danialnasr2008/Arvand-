@@ -19,7 +19,7 @@
             <?php unset($_SESSION['success_msg']); ?>
         <?php endif; ?>
 
-        <form action="/php-app/request" method="POST" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-8" id="request-service-form">
+        <form action="" method="POST" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-8" id="request-service-form">
             
             <!-- Section 1: Contact Details -->
             <div class="space-y-5" id="request-form-section-1">

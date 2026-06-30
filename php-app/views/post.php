@@ -13,7 +13,7 @@ function parseMarkdown($text) {
 }
 ?>
 <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8 animate-fade-in" id="post-detail-view" dir="rtl">
-    <a href="/php-app/blog" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 focus:outline-none cursor-pointer">
+    <a href="<?= BASE_URL ?>blog" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-blue-600 focus:outline-none cursor-pointer">
         <span>بازگشت به لیست مقالات</span>
     </a>
 
@@ -78,7 +78,7 @@ function parseMarkdown($text) {
                 <?php unset($_SESSION['comment_success']); ?>
             <?php endif; ?>
 
-            <form action="/php-app/post?slug=<?= urlencode($slug) ?>" method="POST" class="space-y-4">
+            <form action="<?= BASE_URL ?>post?slug=<?= urlencode($slug) ?>" method="POST" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">نام یا نام مستعار *</label>
                     <input type="text" name="author_name" required placeholder="مثال: حمیدرضا علوی" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right">
