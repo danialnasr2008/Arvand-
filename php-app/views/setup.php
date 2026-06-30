@@ -16,14 +16,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
         </div>
         <h1 class="text-2xl font-extrabold text-slate-900">سیستم راه‌اندازی خودکار آکادمی مالی اروند</h1>
-        <p class="text-sm text-slate-500 mt-1">سورس کد پیشرفته PHP MVC • دیتابیس خودکار SQLite</p>
+        <p class="text-sm text-slate-500 mt-1">سورس کد پیشرفته PHP MVC • دیتابیس خودکار MySQL</p>
     </div>
 
     <div class="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-xl p-6 sm:p-8">
-        <form action="/php-app/setup_action" method="POST">
+        <form action="/php-app/setup" method="POST">
             <h3 class="text-lg font-bold text-slate-800 mb-4">تنظیمات حساب کاربری مدیر ارشد</h3>
             <p class="text-xs text-slate-500 mb-6 leading-relaxed">
-                این اطلاعات برای ورود امن شما به پنل مدیریت وب‌سایت آکادمی استفاده خواهد شد. لطفا رمز عبور قوی انتخاب کنید. (دیتابیس SQLite با موفقیت ساخته شده است).
+                این اطلاعات برای ورود امن شما به پنل مدیریت وب‌سایت آکادمی استفاده خواهد شد. لطفا رمز عبور قوی انتخاب کنید. (جداول MySQL با موفقیت ساخته شده است).
             </p>
 
             <div class="space-y-4">
@@ -58,7 +58,7 @@
     </div>
 
     <div class="mt-6 text-xs text-slate-400 text-center max-w-sm">
-        نکته: با تکمیل این فرآیند، دیتابیس SQLite در سورس کدهای PHP به صورت خودکار پیکربندی می‌شود.
+        نکته: با تکمیل این فرآیند، دیتابیس MySQL به صورت کامل برای مدیریت محتوا پیکربندی می‌شود.
     </div>
 </body>
 </html>
