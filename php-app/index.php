@@ -7,6 +7,14 @@ $url = isset($_GET['url']) ? rtrim($_GET['url'], '/') : '';
 $urlParts = explode('/', $url);
 $route = $urlParts[0] ?: 'home';
 
+// Enforce setup wizard if no users exist
+$stmt = $db->query("SELECT COUNT(*) FROM users");
+$userCount = $stmt->fetchColumn();
+if ($userCount == 0 && $route !== 'setup' && $route !== 'setup_action') {
+    header("Location: /php-app/setup");
+    exit;
+}
+
 // Helpers
 function redirect($path) {
     header("Location: /php-app/$path");
@@ -18,6 +26,18 @@ function isLoggedIn() {
 
 // Handle API / Action Routes (Backend)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($route === 'setup_action') {
+        $adminUser = $_POST['admin_user'];
+        $adminPass = $_POST['admin_pass'];
+        
+        $hash = password_hash($adminPass, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+        $stmt->execute([$adminUser, $hash]);
+        
+        $_SESSION['success_msg'] = 'سیستم با موفقیت نصب شد. لطفاً وارد شوید.';
+        redirect('login');
+    }
+
     if ($route === 'request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $full_name = $_POST['full_name'];
         $company_name = $_POST['company_name'];
@@ -68,8 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($action === 'create' || $action === 'edit') {
             $title = $_POST['title'];
+            $summary = $_POST['summary'];
             $content = $_POST['content'];
-            $image_url = $_POST['image_url'];
+            $category_id = $_POST['category_id'] ?? 1;
+            $is_special = isset($_POST['is_special']) ? 1 : 0;
+            $image_url = $_POST['image_url'] ?? '';
             
             // Handle file upload
             if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
@@ -82,17 +105,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($action === 'create') {
-                $slug = uniqid(); // simplified
-                $stmt = $db->prepare("INSERT INTO posts (title, slug, content, image_url) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$title, $slug, $content, $image_url]);
+                $slug = md5(uniqid()); // simple slug
+                $stmt = $db->prepare("INSERT INTO posts (title, slug, summary, content, image_url, category_id, is_special) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$title, $slug, $summary, $content, $image_url, $category_id, $is_special]);
             } else {
                 $id = $_POST['id'];
-                $stmt = $db->prepare("UPDATE posts SET title=?, content=?, image_url=? WHERE id=?");
-                $stmt->execute([$title, $content, $image_url, $id]);
+                $stmt = $db->prepare("UPDATE posts SET title=?, summary=?, content=?, image_url=?, category_id=?, is_special=? WHERE id=?");
+                $stmt->execute([$title, $summary, $content, $image_url, $category_id, $is_special, $id]);
             }
         } elseif ($action === 'delete') {
             $id = $_POST['id'];
             $stmt = $db->prepare("DELETE FROM posts WHERE id=?");
+            $stmt->execute([$id]);
+        }
+        redirect('admin');
+    }
+    
+    if ($route === 'admin' && $urlParts[1] === 'comment_action') {
+        if (!isLoggedIn()) die('Unauthorized');
+        $action = $_POST['action'] ?? '';
+        $id = $_POST['id'];
+        
+        if ($action === 'approve') {
+            $stmt = $db->prepare("UPDATE comments SET is_approved = 1 WHERE id=?");
+            $stmt->execute([$id]);
+        } elseif ($action === 'delete') {
+            $stmt = $db->prepare("DELETE FROM comments WHERE id=?");
             $stmt->execute([$id]);
         }
         redirect('admin');
@@ -102,6 +140,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Frontend Views
 ob_start();
 switch ($route) {
+    case 'setup':
+        if ($userCount > 0) redirect('home');
+        require __DIR__ . '/views/setup.php';
+        break;
     case 'home':
         $stmt = $db->query("SELECT * FROM posts ORDER BY id DESC LIMIT 6");
         $latest_posts = $stmt->fetchAll();
@@ -181,6 +223,8 @@ switch ($route) {
         $posts = $stmt->fetchAll();
         $stmt = $db->query("SELECT * FROM requests ORDER BY id DESC");
         $requests = $stmt->fetchAll();
+        $stmt = $db->query("SELECT c.*, p.title as post_title FROM comments c JOIN posts p ON c.post_id = p.id ORDER BY c.id DESC");
+        $comments = $stmt->fetchAll();
         require __DIR__ . '/views/admin.php';
         break;
     default:
@@ -189,4 +233,8 @@ switch ($route) {
 }
 $content = ob_get_clean();
 
-require __DIR__ . '/views/layout.php';
+if ($route === 'setup') {
+    echo $content;
+} else {
+    require __DIR__ . '/views/layout.php';
+}

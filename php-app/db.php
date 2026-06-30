@@ -59,9 +59,7 @@ try {
             );
         ");
 
-        // Insert default admin
-        $hash = password_hash('admin', PASSWORD_DEFAULT);
-        $db->exec("INSERT INTO users (username, password) VALUES ('admin', '$hash')");
+        // Do not insert default admin, use setup wizard instead
     }
 } catch (PDOException $e) {
     die("Database Error: " . $e->getMessage());
