@@ -16,11 +16,7 @@ class Database {
             
             $this->initTables();
         } catch(PDOException $e) {
-            die("<div style='text-align:center; margin-top: 50px; font-family: Tahoma; direction: rtl;'>
-                    <h2>خطا در اتصال به دیتابیس MySQL</h2>
-                    <p>" . $e->getMessage() . "</p>
-                    <p>لطفاً یک دیتابیس در MySQL بسازید و اطلاعات اتصال را در فایل <b>config/config.php</b> وارد کنید.</p>
-                 </div>");
+            throw new Exception("Database Connection Error: " . $e->getMessage());
         }
     }
 

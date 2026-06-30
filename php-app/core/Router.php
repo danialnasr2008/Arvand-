@@ -10,15 +10,20 @@ class Router {
         $controllerFile = __DIR__ . '/../controllers/' . $controllerName . '.php';
         
         // Enforce Setup Wizard
+        $needsSetup = false;
         try {
             $db = Database::getInstance();
             $userCount = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-            if ($userCount == 0 && strtolower($urlParts[0]) !== 'setup' && strtolower($urlParts[0]) !== 'setup_action') {
-                header("Location: " . BASE_URL . "setup");
-                exit;
+            if ($userCount == 0) {
+                $needsSetup = true;
             }
         } catch(Exception $e) {
-            // DB connection handles die inside Database.php
+            $needsSetup = true;
+        }
+        
+        if ($needsSetup && strtolower($urlParts[0]) !== 'setup') {
+            header("Location: " . BASE_URL . "setup");
+            exit;
         }
         
         if (file_exists($controllerFile)) {

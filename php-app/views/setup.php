@@ -19,32 +19,62 @@
         <p class="text-sm text-slate-500 mt-1">سورس کد پیشرفته PHP MVC • دیتابیس خودکار MySQL</p>
     </div>
 
-    <div class="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-xl p-6 sm:p-8">
+    <div class="max-w-xl w-full bg-white border border-slate-200 rounded-2xl shadow-xl p-6 sm:p-8">
+        <?php if(isset($_SESSION['error_msg'])): ?>
+            <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-bold text-center">
+                <?= htmlspecialchars($_SESSION['error_msg']) ?>
+            </div>
+            <?php unset($_SESSION['error_msg']); ?>
+        <?php endif; ?>
+        
         <form action="/php-app/setup" method="POST">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">تنظیمات حساب کاربری مدیر ارشد</h3>
-            <p class="text-xs text-slate-500 mb-6 leading-relaxed">
-                این اطلاعات برای ورود امن شما به پنل مدیریت وب‌سایت آکادمی استفاده خواهد شد. لطفا رمز عبور قوی انتخاب کنید. (جداول MySQL با موفقیت ساخته شده است).
-            </p>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5">نام و نام خانوادگی مدیر *</label>
-                    <input type="text" name="admin_name" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right" placeholder="مثال: دانیال نصر">
+            <div class="mb-8">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm">۱</span>
+                    تنظیمات دیتابیس MySQL
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">هاست (Host) *</label>
+                        <input type="text" name="db_host" value="localhost" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">نام دیتابیس (DB Name) *</label>
+                        <input type="text" name="db_name" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">نام کاربری دیتابیس (User) *</label>
+                        <input type="text" name="db_user" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">رمز عبور دیتابیس (Password)</label>
+                        <input type="password" name="db_pass" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                    </div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5">نام کاربری ورود ادمین (Username) *</label>
-                    <input type="text" name="admin_user" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" placeholder="admin" dir="ltr">
-                </div>
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm">۲</span>
+                    حساب کاربری مدیر ارشد
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">نام و نام خانوادگی مدیر *</label>
+                        <input type="text" name="admin_name" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-right">
+                    </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5">ایمیل مدیر *</label>
-                    <input type="email" name="admin_email" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" placeholder="admin@arvand-fi.ir" dir="ltr">
-                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">نام کاربری ورود (Username) *</label>
+                            <input type="text" name="admin_user" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                        </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5">گذرواژه ورود پنل (Password) *</label>
-                    <input type="password" name="admin_pass" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" placeholder="••••••••" dir="ltr">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">گذرواژه پنل (Password) *</label>
+                            <input type="password" name="admin_pass" required class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 text-left font-mono" dir="ltr">
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -3,7 +3,11 @@ class Controller {
     protected $db;
     
     public function __construct() {
-        $this->db = Database::getInstance();
+        try {
+            $this->db = Database::getInstance();
+        } catch(Exception $e) {
+            $this->db = null;
+        }
     }
 
     public function view($view, $data = []) {
